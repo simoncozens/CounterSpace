@@ -171,6 +171,8 @@ class Glyph(object):
 
     self.gsglyph = self.master.font.glyphs[g]
     self.layer   = self.gsglyph.layers[font.master.id]
+    if len(self.layer.components) > 0:
+      self.layer = self.layer.copyDecomposedLayer()
 
     self.ink_width = self.layer.bounds.size.width * self.font.scale_factor
     self.ink_height= self.layer.bounds.size.height * self.font.scale_factor
@@ -198,7 +200,7 @@ class Glyph(object):
 
     NSColor.whiteColor().setFill()
     p2 = NSBezierPath.bezierPath()
-    p2.appendBezierPath_(self.layer.bezierPath)
+    p2.appendBezierPath_(self.layer.completeBezierPath)
     t = NSAffineTransform.transform()
     t.translateXBy_yBy_(-self.lsb,-self.font.descender * self.font.scale_factor)
     t.scaleBy_(self.font.scale_factor)

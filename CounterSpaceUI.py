@@ -7,6 +7,7 @@ from GlyphDrawView import GlyphDrawView
 from vanilla import *
 from itertools import tee,izip
 import CounterSpaceGlyphs
+import string
 
 def pairwise(iterable):
   a, b = tee(iterable)
@@ -53,14 +54,14 @@ class CounterSpaceUI(object):
     self.w.textBox4 = TextBox((10,200,150,17),"Top distance")
     self.w.textBoxgb = TextBox((10,220,-10,14),"(Controls close top pairs eg 'HTArn')",sizeStyle="small",selectable=False)#,callback=self.setHHVLAPH)
 
-    self.w.topStrengthSlider = Slider((180, 200, -60, 23), callback = self.topStrengthCallback, minValue = 0.1, maxValue = 10, continuous=False)
+    self.w.topStrengthSlider = Slider((180, 200, -60, 23), callback = self.topStrengthCallback, minValue = 0, maxValue = 50, continuous=False)
     self.w.topStrengthSlider.set(self.top_strength)
     self.w.topStrengthTextBox = TextBox((-50,200,50,17),self.top_strength)
 
     self.w.textBox5 = TextBox((10,250,150,17),"Bottom distance")
     self.w.textBox5b = TextBox((10,270,-10,14),"(Controls close bottom pairs eg 'HLVtx')",sizeStyle="small",selectable=False)#,callback=self.setHHVLAPH)
 
-    self.w.bottomStrengthSlider = Slider((180, 250, -60, 23), callback = self.bottomStrengthCallback, minValue = 0.1, maxValue = 10, continuous=False)
+    self.w.bottomStrengthSlider = Slider((180, 250, -60, 23), callback = self.bottomStrengthCallback, minValue = 0, maxValue = 50, continuous=False)
     self.w.bottomStrengthSlider.set(self.bottom_strength)
     self.w.bottomStrengthTextBox = TextBox((-50,250,50,17),self.bottom_strength)
 
@@ -166,10 +167,15 @@ class CounterSpaceUI(object):
     self.setStringAndDistances(sender.get())
 
   def setStringAndDistances(self, string):
+    string_a = list(string)
+    for i in range(0,len(string_a)):
+      if ord(string_a[i]) > 255:
+        string_a[i] = "%04x" % ord(string_a[i])
+    print(string_a)
     distances = {}
-    for l,r in pairwise(string):
+    for l,r in pairwise(string_a):
       distances[(l,r)] = self.c.space(l,r)
-    self.view.setString(string)
+    self.view.setString(string_a)
     self.view.setDistances(distances)
 
   def get_kerning(self,l,r):

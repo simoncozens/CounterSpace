@@ -3,7 +3,6 @@ import numpy as np
 from tensorfont import Font,GlyphRendering
 import scipy
 import string
-from fontTools.ttLib import TTFont
 
 class CounterSpace:
     def __init__(self, filename,
@@ -227,6 +226,7 @@ OpenType font filename, and the following keyword parameters:
 
 if __name__ == '__main__':
     c = CounterSpace("OpenSans-Regular.ttf")
+    print(c.box_height)
     print(np.sum(c.rshifted_counter("t",0)))
     print(c.pair_area("H","H"))
     print("TH", c.space("T","H"))

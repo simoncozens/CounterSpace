@@ -30,7 +30,7 @@ class GlyphDrawView(NSView):
         thisPath = NSBezierPath.bezierPath()
         gsglyph = master.font.glyphs[string[s]]
         layer   = gsglyph.layers[master.id]
-        thisPath.appendBezierPath_(layer.bezierPath)
+        thisPath.appendBezierPath_(layer.completeBezierPath)
         # print("X cursor was",xcursor)
         xcursor = xcursor - layer.bounds.origin.x
         # print("Moving backwards", layer.bounds.origin.x)
