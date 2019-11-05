@@ -1,5 +1,13 @@
 # coding: utf-8
+from __future__ import print_function
+
 import numpy as np
+import sys
+
+if sys.version_info[0] == 3:
+    from urllib.request import urlretrieve
+else:
+    from urllib import urlretrieve
 
 try:
     import GlyphsApp
@@ -300,6 +308,22 @@ OpenType font filename, and the following keyword parameters:
         lsb = self.space(keyglyph,g) - keyspace
         rsb = self.space(g,keyglyph) - keyspace
         return(lsb,rsb)
+
+    @classmethod
+    def get_sample_font(self, name):
+        sample_fonts = {
+            "CrimsonRoman.otf": "https://github.com/skosch/Crimson/blob/master/Desktop%20Fonts/OTF/Crimson-Roman.otf?raw=true",
+            "Tinos-Italic.ttf": "https://github.com/jenskutilek/free-fonts/raw/master/Tinos/TTF/Tinos-Italic.ttf",
+            "PTSerif-Italic.ttf": "https://github.com/divspace/pt-serif/raw/master/fonts/pt-serif/pt-serif-italic.ttf",
+            "Crimson-SemiboldItalic.otf": "https://github.com/skosch/Crimson/raw/master/Desktop%20Fonts/OTF/Crimson-SemiboldItalic.otf"
+        }
+        if not (name in sample_fonts):
+            print("%s not known; sample fonts available are: %s" % (name, ", ".join(sample_fonts.keys())))
+            return
+        import os.path
+        if not os.path.isfile(name):
+            urlretrieve(sample_fonts[name], name)
+            print("Downloaded %s" % name)
 
 if __name__ == '__main__':
     c = CounterSpace("OpenSans-Regular.ttf",serif_smoothing=0)
