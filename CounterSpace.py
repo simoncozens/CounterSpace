@@ -1,12 +1,18 @@
 # coding: utf-8
 import numpy as np
-from tensorfont import Font,GlyphRendering
+
+try:
+    import GlyphsApp
+    from tensorfontglyphs import Font,GlyphRendering
+except Exception as e:
+    from tensorfont import Font,GlyphRendering
+
 import scipy
 import string
 from scipy.signal import convolve
 
 class CounterSpace:
-    def __init__(self, filename,
+    def __init__(self, file,
         bare_minimum = 50,
         absolute_maximum = 500,
         serif_smoothing = 2,
@@ -20,7 +26,7 @@ OpenType font filename, and the following keyword parameters:
 * `bare_minimum`: Minimum ink-to-ink distance. Default is 30 units. Increase this if "VV" is too close.
 * `serif_smoothing`: Default is 0. Amount of blurring applied. Increase to 20 or so if you have prominent serifs.
     """
-        self.filename = filename
+        self.filename = file
         self.font = Font(self.filename, x_height_in_pixels)
         self.bare_minimum = bare_minimum * self.font.scale_factor
         self.serif_smoothing = serif_smoothing
@@ -144,9 +150,9 @@ OpenType font filename, and the following keyword parameters:
             reference = self.reference_pair(l,r)
         shift_l, shift_r = f.shift_distances(l,r,dist)
 
-        lref, rref = [f.glyph(r) for r in reference]
-        reftop = min(lref.tsb,rref.tsb)
-        refbottom = min(lref.tsb+lref.ink_height, rref.tsb+rref.ink_height)
+        lref, rref = [f.glyph(ref) for ref in reference]
+        reftop = int(min(lref.tsb,rref.tsb))
+        refbottom = int(min(lref.tsb+lref.ink_height, rref.tsb+rref.ink_height))
 
         sigmas_top    = (options["w_top"], options["h_top"])
         sigmas_bottom = (options["w_bottom"], options["h_bottom"])
@@ -207,34 +213,40 @@ OpenType font filename, and the following keyword parameters:
     def determine_parameters(self, callback = None):
         bounds_for = {
             "w_center": (5,25),
-            "h_center": (50,200),
+            "h_center": (10,50),
             "w_top": (5,25),
-            "h_top": (50,200),
+            "h_top": (10,50),
             "w_bottom": (5,50),
-            "h_bottom": (50,200),
-            "center_strength": (1,1),
-            "top_strength": (0.25,1),
-            "bottom_strength": (0.25,1),
+            "h_bottom": (10,50),
+            "center_strength": (1,5),
+            "top_strength": (0.05,1),
+            "bottom_strength": (0.05,1),
         }
-        def solve_for(variables, strings, options, guess):
+        def solve_for(variables, strings, options):
             reference = strings.pop(0)
             bounds = [bounds_for[v] for v in variables]
+            guess =  [options[v] for v in variables]
             def comparator(o):
                 for ix,var in enumerate(variables):
                     options[var] = o[ix]
-                if callback:
-                    callback(o)
                 HH = np.sum(self.pair_area(reference[0],reference[1],options))
                 err = []
                 for s in strings:
                     val = np.sum(self.pair_area(s[0],s[1],options))
                     err.append( ( val - HH) / HH )
                 err = np.sum(np.array(err) ** 2)
-        #         print(err)
+                if callback:
+                    callback(err)
                 return err
-            result = scipy.optimize.minimize(comparator,guess,method="TNC",
-                              # options = {"disp": True},
-                              bounds=bounds)
+            result = scipy.optimize.minimize(comparator,guess,
+                method="TNC",
+                bounds=bounds,
+                options={
+                    # 'maxfev': 200
+                    'xtol': 0.01,
+                    'eta': 0.8
+                },
+                )
             for ix,var in enumerate(variables):
                 options[var] = result.x[ix]
             return options
@@ -243,15 +255,16 @@ OpenType font filename, and the following keyword parameters:
             variables = ["h_center","w_center","center_strength","h_top","w_top","top_strength","h_bottom","w_bottom","bottom_strength"],
             strings = self.key_pairs,
             options = {
-                "w_top": 1,
-                "w_bottom": 1,
-                "h_top": 1,
-                "h_bottom": 1,
-                "w_center": 50,
-                "top_strength": 1,
-                "bottom_strength": 1,
-            },
-            guess = [200,200,5,200,200,5,200,200,5]
+                "w_top": 15,
+                "w_bottom": 15,
+                "h_top": 15,
+                "h_bottom": 15,
+                "h_center": 15,
+                "w_center": 30,
+                "top_strength": 0.5,
+                "bottom_strength": 0.8,
+                "center_strength": 2
+            }
         )
         self.options = options
         return options
@@ -267,7 +280,7 @@ OpenType font filename, and the following keyword parameters:
         peak_idx = -1
         goneover = False
 
-        for n in range(-int(mid+self.bare_minimum),self.absolute_maximum,1):
+        for n in range(-int(mid)+int(self.bare_minimum),self.absolute_maximum,1):
             u = np.sum(self.pair_area(l,r,self.options,dist=n, reference=reference))
             if u > u_good:
                 rv = n
@@ -290,14 +303,8 @@ OpenType font filename, and the following keyword parameters:
 
 if __name__ == '__main__':
     c = CounterSpace("OpenSans-Regular.ttf",serif_smoothing=0)
-    print(c.box_height)
-    c.options = {'w_top': 25.0, 'w_bottom': 50.0, 'h_top': 55.48663479521707, 'h_bottom': 50.0, 'w_center': 15.213935738797124, 'top_strength': 0.523527034706438, 'bottom_strength': 0.25, 'h_center': 198.9123532242424, 'center_strength': 1.0}
-    # print(c.determine_parameters(callback = lambda x: print(".",end="",flush=True)))
-    # print(c.space("A","V"))
-    # print("H",c.derive_sidebearings("H"))
-    # print("O",c.derive_sidebearings("O"))
-    # print("A",c.derive_sidebearings("A"))
-    # print("G",c.derive_sidebearings("G"))
+    print("Determining parameters", end="")
+    print(c.determine_parameters(callback = lambda x: print(".",end="",flush=True)))
     pdd = {}
 
     def compare(s):

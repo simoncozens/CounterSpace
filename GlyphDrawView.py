@@ -47,10 +47,11 @@ class GlyphDrawView(NSView):
         p.appendBezierPath_(thisPath)
 
       t = NSAffineTransform.transform()
-      vscale = self.bounds().size.height / (master.ascender - master.descender)
-      hscale = self.bounds().size.width / xcursor
-      t.scaleBy_(min(hscale,vscale))
-      p.transformUsingAffineTransform_(t)
+      if xcursor > 0:
+        vscale = self.bounds().size.height / (master.ascender - master.descender)
+        hscale = self.bounds().size.width / xcursor
+        t.scaleBy_(min(hscale,vscale))
+        p.transformUsingAffineTransform_(t)
       p.fill()
     except:
       print("Oops!",sys.exc_info()[0],"occured.")
