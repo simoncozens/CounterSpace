@@ -103,11 +103,11 @@ OpenType font filename, and the following keyword parameters:
     def lshifted_counter(self, glyph, amount,reftop, refbottom):
         if (glyph,amount,reftop,refbottom) in self._lshifted_counters: return self._lshifted_counters[(glyph,amount,reftop,refbottom)]
         fg = self.font.glyph(glyph).as_matrix()
-        if self.kernel is not None:
-            fg = GlyphRendering.init_from_numpy(fg._glyph,convolve(fg,self.kernel,mode="same") > 250)
         conc = 0
         if fg.discontinuity(contour="right") > 0:
             conc = 1-fg.right_face()
+        if self.kernel is not None:
+            fg = GlyphRendering.init_from_numpy(fg._glyph,convolve(fg,self.kernel,mode="same") > 250)
         padded = fg.with_padding_to_constant_box_width(self.box_width)
         padded[0:reftop,:]   = 0
         padded[refbottom:,:] = 0
@@ -121,11 +121,11 @@ OpenType font filename, and the following keyword parameters:
     def rshifted_counter(self,glyph,amount,reftop,refbottom):
         if (glyph,amount,reftop,refbottom) in self._rshifted_counters: return self._rshifted_counters[(glyph,amount,reftop,refbottom)]
         fg = self.font.glyph(glyph).as_matrix()
-        if self.kernel is not None:
-            fg = GlyphRendering.init_from_numpy(fg._glyph,convolve(fg,self.kernel,mode="same") > 250)
         conc = 0
         if fg.discontinuity(contour="left") > 0:
             conc = 1-fg.left_face()
+        if self.kernel is not None:
+            fg = GlyphRendering.init_from_numpy(fg._glyph,convolve(fg,self.kernel,mode="same") > 250)
         padded = fg.with_padding_to_constant_box_width(self.box_width)
         padded[0:reftop,:]   = 0
         padded[refbottom:,:] = 0
@@ -199,22 +199,24 @@ OpenType font filename, and the following keyword parameters:
         bottomlight = self.gaussian(bottom_x,bottom_y,sigmas_bottom[0],sigmas_bottom[1],self.theta)
         centerlight = self.gaussian(x_center,y_center,sigmas_center[0],sigmas_center[1],self.theta)
 
-        fnonz = False
-        for i in range(reftop+1,refbottom):
-            if fnonz:
-                toplight[i,:] = toplight[i,:] * (toplight[i-1,:] > 0) * (union[i,:] > 0)
-            else:
-                if np.any(toplight[i,:] > 0):
-                    fnonz = True
-        fnonz = False
-        for i in range(refbottom-1,reftop,-1):
-            if fnonz:
-                bottomlight[i,:] = bottomlight[i,:] * (bottomlight[i+1,:] > 0) * (union[i,:] > 0)
-            else:
-                if np.any(toplight[i,:] > 0):
-                    fnonz = True
+        # XXX - this "shadowing" idea doesn't quite work
+        
+        # fnonz = False
+        # for i in range(reftop+1,refbottom):
+        #     if fnonz:
+        #         toplight[i,:] = toplight[i,:] * (toplight[i-1,:] > 0) * (union[i,:] > 0)
+        #     else:
+        #         if np.any(toplight[i,:] > 0):
+        #             fnonz = True
+        # fnonz = False
+        # for i in range(refbottom-1,reftop,-1):
+        #     if fnonz:
+        #         bottomlight[i,:] = bottomlight[i,:] * (bottomlight[i+1,:] > 0) * (union[i,:] > 0)
+        #     else:
+        #         if np.any(toplight[i,:] > 0):
+        #             fnonz = True
 
-            #     print("Total light:", np.sum( top_strength * toplight + bottomlight ))
+        #     #     print("Total light:", np.sum( top_strength * toplight + bottomlight ))
         union =  centerlight * center_strength * union + union * bottomlight * bottom_strength + union * ( top_strength * toplight)
         return union
 
@@ -315,7 +317,8 @@ OpenType font filename, and the following keyword parameters:
             "CrimsonRoman.otf": "https://github.com/skosch/Crimson/blob/master/Desktop%20Fonts/OTF/Crimson-Roman.otf?raw=true",
             "Tinos-Italic.ttf": "https://github.com/jenskutilek/free-fonts/raw/master/Tinos/TTF/Tinos-Italic.ttf",
             "PTSerif-Italic.ttf": "https://github.com/divspace/pt-serif/raw/master/fonts/pt-serif/pt-serif-italic.ttf",
-            "Crimson-SemiboldItalic.otf": "https://github.com/skosch/Crimson/raw/master/Desktop%20Fonts/OTF/Crimson-SemiboldItalic.otf"
+            "Crimson-SemiboldItalic.otf": "https://github.com/skosch/Crimson/raw/master/Desktop%20Fonts/OTF/Crimson-SemiboldItalic.otf",
+            "OpenSans-Regular.ttf": "https://github.com/google/fonts/blob/master/apache/opensans/OpenSans-Regular.ttf"
         }
         if not (name in sample_fonts):
             print("%s not known; sample fonts available are: %s" % (name, ", ".join(sample_fonts.keys())))
