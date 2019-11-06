@@ -1,0 +1,3 @@
+numpy
+scipy
+tensorfont==0.0.6
