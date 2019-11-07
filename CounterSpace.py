@@ -161,7 +161,8 @@ OpenType font filename, and the following keyword parameters:
         lref, rref = [f.glyph(ref) for ref in reference]
         reftop = int(min(lref.tsb,rref.tsb))
         refbottom = int(min(lref.tsb+lref.ink_height, rref.tsb+rref.ink_height))
-
+        reftop = reftop + self.serif_smoothing
+        refbottom = refbottom - self.serif_smoothing
         sigmas_top    = (options["w_top"], options["h_top"])
         sigmas_bottom = (options["w_bottom"], options["h_bottom"])
         sigmas_center = (options["w_center"], options["h_center"])
