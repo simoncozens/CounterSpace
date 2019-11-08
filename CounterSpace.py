@@ -223,13 +223,12 @@ OpenType font filename, and the following keyword parameters:
 
     def determine_parameters(self, callback = None):
         bounds_for = {
-            "w_center": (5,25),
-            "h_center": (10,50),
-            "w_top": (5,25),
-            "h_top": (10,50),
+            "w_center": (5,1000),
+            "h_center": (10,1000),
+            "w_top": (5,50),
+            "h_top": (5,50),
             "w_bottom": (5,50),
-            "h_bottom": (10,50),
-            "center_strength": (1,5),
+            "h_bottom": (5,50),
             "top_strength": (0.05,1),
             "bottom_strength": (0.05,1),
         }
@@ -263,18 +262,18 @@ OpenType font filename, and the following keyword parameters:
             return options
 
         options = solve_for(
-            variables = ["h_center","w_center","center_strength","h_top","w_top","top_strength","h_bottom","w_bottom","bottom_strength"],
+            variables = ["h_center","w_center","h_top","w_top","top_strength","h_bottom","w_bottom","bottom_strength"],
             strings = self.key_pairs,
             options = {
                 "w_top": 15,
                 "w_bottom": 15,
                 "h_top": 15,
                 "h_bottom": 15,
-                "h_center": 15,
-                "w_center": 30,
-                "top_strength": 0.5,
-                "bottom_strength": 0.8,
-                "center_strength": 2
+                "h_center": 1000,
+                "w_center": 1000,
+                "top_strength": 0.1,
+                "bottom_strength": 0.1,
+                "center_strength": 1
             }
         )
         self.options = options
@@ -311,6 +310,19 @@ OpenType font filename, and the following keyword parameters:
         lsb = self.space(keyglyph,g) - keyspace
         rsb = self.space(g,keyglyph) - keyspace
         return(lsb,rsb)
+
+    def test_string(self, string):
+        from itertools import tee
+        def pairwise(iterable):
+          a, b = tee(iterable)
+          next(b, None)
+          return zip(a, b)
+        found = []
+        good = []
+        for l,r in pairwise(string):
+            found.append(self.space(l,r) * self.font.scale_factor)
+            good.append(self.font.pair_distance(l,r))
+        return found,good
 
     @classmethod
     def get_sample_font(self, name):
