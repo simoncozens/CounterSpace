@@ -331,7 +331,7 @@ OpenType font filename, and the following keyword parameters:
             "Tinos-Italic.ttf": "https://github.com/jenskutilek/free-fonts/raw/master/Tinos/TTF/Tinos-Italic.ttf",
             "PTSerif-Italic.ttf": "https://github.com/divspace/pt-serif/raw/master/fonts/pt-serif/pt-serif-italic.ttf",
             "Crimson-SemiboldItalic.otf": "https://github.com/skosch/Crimson/raw/master/Desktop%20Fonts/OTF/Crimson-SemiboldItalic.otf",
-            "OpenSans-Regular.ttf": "https://github.com/google/fonts/blob/master/apache/opensans/OpenSans-Regular.ttf"
+            "OpenSans-Regular.ttf": "https://github.com/google/fonts/raw/master/apache/opensans/OpenSans-Regular.ttf"
         }
         if not (name in sample_fonts):
             print("%s not known; sample fonts available are: %s" % (name, ", ".join(sample_fonts.keys())))
